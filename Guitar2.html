@@ -1,0 +1,1470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0f141c" />
+  <title>Guitar Helper</title>
+  <style>
+    :root {
+      --bg: #0f141c;
+      --panel: #18202c;
+      --panel-border: #263244;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --accent: #3b82f6;
+      --accent-soft: rgba(59, 130, 246, 0.18);
+      --root-color: #f97316;
+      --blue-note: #06b6d4;
+      --chord-tone: #10b981;
+      --danger: #ef4444;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 14px;
+      line-height: 1.35;
+      -webkit-text-size-adjust: 100%;
+    }
+    .app {
+      max-width: 560px;
+      margin: 0 auto;
+      padding: 10px 10px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .mode-tabs {
+      display: flex;
+      flex: 1;
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      padding: 3px;
+    }
+    .mode-tab {
+      flex: 1;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 14px;
+      padding: 7px 0;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .mode-tab.active {
+      background: var(--accent);
+      color: #fff;
+    }
+    .spell-btn {
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      color: var(--text);
+      font-weight: 600;
+      font-size: 13px;
+      padding: 8px 11px;
+      border-radius: 8px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .dropdown-row {
+      display: grid;
+      grid-template-columns: 1.05fr 1.25fr 1.25fr;
+      gap: 6px;
+    }
+    .select-group {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .select-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      padding-left: 2px;
+    }
+    select {
+      width: 100%;
+      background: var(--panel);
+      color: var(--text);
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      padding: 7px 8px;
+      font-size: 13px;
+      font-weight: 600;
+      outline: none;
+    }
+    select:focus {
+      border-color: var(--accent);
+    }
+    .toggle-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+    .pill-group {
+      display: flex;
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      padding: 2px;
+      gap: 2px;
+    }
+    .pill-btn {
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .pill-btn.active {
+      background: var(--accent);
+      color: #fff;
+    }
+    .extra-toggles {
+      display: flex;
+      gap: 5px;
+    }
+    .chip-toggle {
+      border: 1px solid var(--panel-border);
+      background: var(--panel);
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 5px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .chip-toggle.active {
+      border-color: var(--chord-tone);
+      background: rgba(16, 185, 129, 0.16);
+      color: #a7f3d0;
+    }
+    .neck-panel {
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: 10px;
+      padding: 8px 6px 6px;
+      overflow: hidden;
+    }
+    .neck-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 4px 4px;
+      font-size: 12px;
+      color: var(--muted);
+      gap: 8px;
+    }
+    .neck-title {
+      font-weight: 700;
+      color: var(--text);
+    }
+    #neckCanvas {
+      width: 100%;
+      height: 180px;
+      display: block;
+    }
+    .cards-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 2px;
+      gap: 8px;
+    }
+    .cards-count {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .show-all-btn {
+      border: 1px solid var(--panel-border);
+      background: var(--panel);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 9px;
+      border-radius: 6px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .chord-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+      gap: 8px;
+    }
+    .chord-card {
+      background: var(--panel);
+      border: 1.5px solid var(--panel-border);
+      border-radius: 10px;
+      padding: 8px 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      transition: border-color 0.12s;
+      min-height: 220px;
+    }
+    .chord-card.selected {
+      border-color: var(--accent);
+      background: linear-gradient(180deg, rgba(59, 130, 246, 0.12), var(--panel));
+    }
+    .card-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      text-align: center;
+    }
+    .card-sub {
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 4px;
+      text-align: center;
+    }
+    .card-canvas {
+      width: 130px;
+      display: block;
+      margin: 0 auto;
+    }
+    .tag-row {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 4px;
+    }
+    .tag {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(148, 163, 184, 0.14);
+      color: #cbd5e1;
+    }
+    .context-panel {
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: 10px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .context-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+    }
+    .context-group {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 5px;
+    }
+    .context-label {
+      font-size: 12px;
+      color: var(--muted);
+      margin-right: 2px;
+    }
+    .chord-pill {
+      border: 1px solid var(--panel-border);
+      background: #111722;
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .chord-pill:hover,
+    .chord-pill.active-pill {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      color: #fff;
+    }
+    button,
+    select,
+    .show-all-btn,
+    .mode-tab,
+    .pill-btn,
+    .chip-toggle,
+    .spell-btn {
+      min-height: 42px;
+      touch-action: manipulation;
+    }
+    @media (max-width: 380px) {
+      .dropdown-row {
+        grid-template-columns: 1fr;
+      }
+      .neck-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2px;
+      }
+      .chord-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="top-bar">
+      <div class="mode-tabs">
+        <button class="mode-tab active" id="tabChords" onclick="setMode('chords')">Chords</button>
+        <button class="mode-tab" id="tabScales" onclick="setMode('scales')">Scales</button>
+      </div>
+      <button class="spell-btn" id="spellBtn" onclick="toggleSpelling()">#/b: Auto</button>
+    </div>
+    <div class="dropdown-row">
+      <div class="select-group">
+        <span class="select-label">Root</span>
+        <select id="rootSelect" onchange="onRootChange()"></select>
+      </div>
+      <div class="select-group">
+        <span class="select-label" id="secondLabel">Quality</span>
+        <select id="secondSelect" onchange="onSecondChange()"></select>
+      </div>
+      <div class="select-group">
+        <span class="select-label" id="thirdLabel">Voicing</span>
+        <select id="thirdSelect" onchange="onThirdChange()"></select>
+      </div>
+    </div>
+    <div class="toggle-row">
+      <div class="pill-group">
+        <button class="pill-btn active" id="lblFingers" onclick="setLabelMode('fingers')">Fingers</button>
+        <button class="pill-btn" id="lblIntervals" onclick="setLabelMode('intervals')">Intervals</button>
+        <button class="pill-btn" id="lblNotes" onclick="setLabelMode('notes')">Notes</button>
+      </div>
+      <div class="extra-toggles" id="scaleToggles" style="display: none;">
+        <button class="chip-toggle" id="btnRootsOnly" onclick="toggleRootsOnly()">Roots Only</button>
+        <button class="chip-toggle" id="btnChordTones" onclick="toggleChordTones()">Chord Tones</button>
+      </div>
+      <div class="extra-toggles" id="chordToggles">
+        <button class="chip-toggle" id="btnFullNeck" onclick="toggleFullNeck()">Full Neck</button>
+      </div>
+    </div>
+    <div class="neck-panel">
+      <div class="neck-header">
+        <span class="neck-title" id="neckTitle">G Maj7</span>
+        <span id="neckSubtitle">Top string: high e (1st) • Bottom: low E (6th)</span>
+      </div>
+      <canvas id="neckCanvas"></canvas>
+    </div>
+    <div id="chordsSection">
+      <div class="cards-header" style="margin-bottom: 6px;">
+        <span class="cards-count" id="cardsCount">Showing Top 5 shapes</span>
+        <button class="show-all-btn" id="showAllBtn" onclick="toggleShowAll()" style="display: none;">Show All</button>
+      </div>
+      <div class="chord-grid" id="chordGrid"></div>
+    </div>
+    <div class="context-panel" id="contextPanel"></div>
+  </div>
+  <script>
+    const TUNING = [4, 9, 2, 7, 11, 4];
+    const STRING_NAMES = ['E', 'A', 'D', 'G', 'B', 'e'];
+    const MAX_FRET = 15;
+    const ROOTS = [
+      { id: 0, sharp: 'C', flat: 'C', label: 'C', defaultFlat: false },
+      { id: 1, sharp: 'C#', flat: 'Db', label: 'C# / Db', defaultFlat: true },
+      { id: 2, sharp: 'D', flat: 'D', label: 'D', defaultFlat: false },
+      { id: 3, sharp: 'D#', flat: 'Eb', label: 'D# / Eb', defaultFlat: true },
+      { id: 4, sharp: 'E', flat: 'E', label: 'E', defaultFlat: false },
+      { id: 5, sharp: 'F', flat: 'F', label: 'F', defaultFlat: true },
+      { id: 6, sharp: 'F#', flat: 'Gb', label: 'F# / Gb', defaultFlat: false },
+      { id: 7, sharp: 'G', flat: 'G', label: 'G', defaultFlat: false },
+      { id: 8, sharp: 'G#', flat: 'Ab', label: 'G# / Ab', defaultFlat: true },
+      { id: 9, sharp: 'A', flat: 'A', label: 'A', defaultFlat: false },
+      { id: 10, sharp: 'A#', flat: 'Bb', label: 'A# / Bb', defaultFlat: true },
+      { id: 11, sharp: 'B', flat: 'B', label: 'B', defaultFlat: false }
+    ];
+    const SHARP_NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+    const FLAT_NOTES  = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
+    const INTERVAL_NAMES = ['R', 'b2', '2', 'b3', '3', '4', 'b5', '5', 'b6', '6', 'b7', '7'];
+    const QUALITIES = [
+      { id: 'Maj', label: 'Major' },
+      { id: 'min', label: 'Minor' },
+      { id: '7', label: 'Dominant 7' },
+      { id: 'Maj7', label: 'Major 7' },
+      { id: 'min7', label: 'Minor 7' },
+      { id: 'add9', label: 'Add9' },
+      { id: 'sus4', label: 'Sus4' },
+      { id: '5', label: '5 (Power)' }
+    ];
+    const VOICING_FILTERS = [
+      { id: 'top5', label: 'Top 5 Shapes' },
+      { id: 'Open', label: 'Open' },
+      { id: 'Barre', label: 'Barre' },
+      { id: 'Shell', label: 'Shell / Compact' },
+      { id: 'Triad', label: 'Triad (3-Str)' }
+    ];
+    const SCALES = [
+      { id: 'Blues', label: 'Blues', semitones: [0, 3, 5, 6, 7, 10], chordTones: [0, 3, 7, 10], blueNote: 6 },
+      { id: 'MinorPent', label: 'Minor Pentatonic', semitones: [0, 3, 5, 7, 10], chordTones: [0, 3, 7, 10] },
+      { id: 'MajorPent', label: 'Major Pentatonic', semitones: [0, 2, 4, 7, 9], chordTones: [0, 4, 7] },
+      { id: 'Major', label: 'Major', semitones: [0, 2, 4, 5, 7, 9, 11], chordTones: [0, 4, 7, 11] },
+      { id: 'Minor', label: 'Natural Minor', semitones: [0, 2, 3, 5, 7, 8, 10], chordTones: [0, 3, 7, 10] }
+    ];
+    const SCALE_POSITIONS = [
+      { id: 'full', label: 'Full Neck (0-15)' },
+      { id: '1', label: 'Position 1 (Root Box)' },
+      { id: '2', label: 'Position 2' },
+      { id: '3', label: 'Position 3' },
+      { id: '4', label: 'Position 4' },
+      { id: '5', label: 'Position 5' }
+    ];
+    const OPEN_CHORDS = {
+      0: {
+        Maj:  { sub: 'Open C', frets: [-1, 3, 2, 0, 1, 0], fingers: [0, 3, 2, 0, 1, 0], tags: ['Open', 'Most Common'] },
+        Maj7: { sub: 'Open Cmaj7', frets: [-1, 3, 2, 0, 0, 0], fingers: [0, 3, 2, 0, 0, 0], tags: ['Open', 'Easiest'] },
+        '7':  { sub: 'Open C7', frets: [-1, 3, 2, 3, 1, 0], fingers: [0, 3, 2, 4, 1, 0], tags: ['Open', 'Most Common'] },
+        add9: { sub: 'Open Cadd9', frets: [-1, 3, 2, 0, 3, 0], fingers: [0, 2, 1, 0, 3, 0], tags: ['Open', 'Most Common'] },
+        sus4: { sub: 'Open Csus4', frets: [-1, 3, 3, 0, 1, 0], fingers: [0, 2, 3, 0, 1, 0], tags: ['Open', 'Common'] }
+      },
+      2: {
+        Maj:  { sub: 'Open D', frets: [-1, -1, 0, 2, 3, 2], fingers: [0, 0, 0, 1, 3, 2], tags: ['Open', 'Most Common'] },
+        min:  { sub: 'Open Dm', frets: [-1, -1, 0, 2, 3, 1], fingers: [0, 0, 0, 2, 3, 1], tags: ['Open', 'Most Common'] },
+        '7':  { sub: 'Open D7', frets: [-1, -1, 0, 2, 1, 2], fingers: [0, 0, 0, 2, 1, 3], tags: ['Open', 'Most Common'] },
+        Maj7: { sub: 'Open Dmaj7', frets: [-1, -1, 0, 2, 2, 2], fingers: [0, 0, 0, 1, 1, 1], tags: ['Open', 'Easiest'] },
+        min7: { sub: 'Open Dm7', frets: [-1, -1, 0, 2, 1, 1], fingers: [0, 0, 0, 2, 1, 1], tags: ['Open', 'Most Common'] },
+        add9: { sub: 'Open Dadd9', frets: [-1, -1, 4, 2, 3, 0], fingers: [0, 0, 3, 1, 2, 0], tags: ['Open', 'Lush'] },
+        sus4: { sub: 'Open Dsus4', frets: [-1, -1, 0, 2, 3, 3], fingers: [0, 0, 0, 1, 2, 3], tags: ['Open', 'Most Common'] },
+        '5':  { sub: 'Open D5 Power', frets: [-1, -1, 0, 2, 3, -1], fingers: [0, 0, 0, 1, 3, 0], tags: ['Open', 'Power'] }
+      },
+      4: {
+        Maj:  { sub: 'Open E', frets: [0, 2, 2, 1, 0, 0], fingers: [0, 2, 3, 1, 0, 0], tags: ['Open', 'Most Common'] },
+        min:  { sub: 'Open Em', frets: [0, 2, 2, 0, 0, 0], fingers: [0, 2, 3, 0, 0, 0], tags: ['Open', 'Easiest'] },
+        '7':  { sub: 'Open E7', frets: [0, 2, 0, 1, 0, 0], fingers: [0, 2, 0, 1, 0, 0], tags: ['Open', 'Easiest'] },
+        Maj7: { sub: 'Open Emaj7', frets: [0, 2, 1, 1, 0, 0], fingers: [0, 3, 1, 2, 0, 0], tags: ['Open', 'Compact'] },
+        min7: { sub: 'Open Em7', frets: [0, 2, 0, 0, 0, 0], fingers: [0, 2, 0, 0, 0, 0], tags: ['Open', 'Easiest'] },
+        add9: { sub: 'Open Eadd9', frets: [0, 2, 2, 1, 0, 2], fingers: [0, 2, 3, 1, 0, 4], tags: ['Open', 'Most Common'] },
+        sus4: { sub: 'Open Esus4', frets: [0, 2, 2, 2, 0, 0], fingers: [0, 2, 3, 4, 0, 0], tags: ['Open', 'Common'] },
+        '5':  { sub: 'Open E5 Power', frets: [0, 2, 2, -1, -1, -1], fingers: [0, 1, 2, 0, 0, 0], tags: ['Open', 'Power'] }
+      },
+      5: {
+        Maj7: { sub: 'Open Fmaj7', frets: [-1, -1, 3, 2, 1, 0], fingers: [0, 0, 3, 2, 1, 0], tags: ['Open', 'Easiest'] },
+        add9: { sub: 'Open Fadd9', frets: [-1, -1, 3, 2, 1, 3], fingers: [0, 0, 3, 2, 1, 4], tags: ['Open', 'Compact'] }
+      },
+      7: {
+        Maj:  { sub: 'Open G', frets: [3, 2, 0, 0, 0, 3], fingers: [2, 1, 0, 0, 0, 3], tags: ['Open', 'Most Common'] },
+        '7':  { sub: 'Open G7', frets: [3, 2, 0, 0, 0, 1], fingers: [3, 2, 0, 0, 0, 1], tags: ['Open', 'Most Common'] },
+        Maj7: { sub: 'Open Gmaj7', frets: [3, 2, 0, 0, 0, 2], fingers: [2, 1, 0, 0, 0, 3], tags: ['Open', 'Easiest'] },
+        add9: { sub: 'Open Gadd9', frets: [3, 2, 0, 2, 0, 3], fingers: [2, 1, 0, 3, 0, 4], tags: ['Open', 'Most Common'] },
+        sus4: { sub: 'Open Gsus4', frets: [3, 3, 0, 0, 1, 3], fingers: [2, 3, 0, 0, 1, 4], tags: ['Open', 'Common'] }
+      },
+      9: {
+        Maj:  { sub: 'Open A', frets: [-1, 0, 2, 2, 2, 0], fingers: [0, 0, 1, 2, 3, 0], tags: ['Open', 'Most Common'] },
+        min:  { sub: 'Open Am', frets: [-1, 0, 2, 2, 1, 0], fingers: [0, 0, 2, 3, 1, 0], tags: ['Open', 'Most Common'] },
+        '7':  { sub: 'Open A7', frets: [-1, 0, 2, 0, 2, 0], fingers: [0, 0, 2, 0, 3, 0], tags: ['Open', 'Easiest'] },
+        Maj7: { sub: 'Open Amaj7', frets: [-1, 0, 2, 1, 2, 0], fingers: [0, 0, 2, 1, 3, 0], tags: ['Open', 'Most Common'] },
+        min7: { sub: 'Open Am7', frets: [-1, 0, 2, 0, 1, 0], fingers: [0, 0, 2, 0, 1, 0], tags: ['Open', 'Easiest'] },
+        add9: { sub: 'Open Aadd9', frets: [-1, 0, 2, 4, 2, 0], fingers: [0, 0, 1, 3, 1, 0], tags: ['Open', 'Lush'] },
+        sus4: { sub: 'Open Asus4', frets: [-1, 0, 2, 2, 3, 0], fingers: [0, 0, 1, 2, 3, 0], tags: ['Open', 'Most Common'] },
+        '5':  { sub: 'Open A5 Power', frets: [-1, 0, 2, 2, -1, -1], fingers: [0, 0, 1, 2, 0, 0], tags: ['Open', 'Power'] }
+      },
+      11: {
+        '7':  { sub: 'Open B7', frets: [-1, 2, 1, 2, 0, 2], fingers: [0, 2, 1, 3, 0, 4], tags: ['Open', 'Most Common'] }
+      }
+    };
+
+    let state = {
+      mode: 'chords',
+      root: 7,
+      quality: 'Maj7',
+      voicingFilter: 'top5',
+      scale: 'Blues',
+      position: '1',
+      labelMode: 'fingers',
+      rootsOnly: false,
+      chordTones: false,
+      fullNeck: false,
+      spellingMode: 'auto',
+      selectedCardIdx: 0,
+      showAllChords: false,
+      activeHighlightChordRoot: null,
+      activeHighlightChordTones: null
+    };
+    function getRootObj(rootId) {
+      return ROOTS.find(r => r.id === rootId) || ROOTS[0];
+    }
+    function refreshSpellBtn() {
+      const labels = { auto: '#/b: Auto', sharp: 'Spelling: #', flat: 'Spelling: b' };
+      document.getElementById('spellBtn').textContent = labels[state.spellingMode];
+    }
+    function useFlats() {
+      if (state.spellingMode === 'sharp') return false;
+      if (state.spellingMode === 'flat') return true;
+      return getRootObj(state.root).defaultFlat;
+    }
+    function noteName(pitch) {
+      const p = ((pitch % 12) + 12) % 12;
+      return useFlats() ? FLAT_NOTES[p] : SHARP_NOTES[p];
+    }
+    function intervalLabel(root, pitch, quality) {
+      const semi = ((pitch - root) % 12 + 12) % 12;
+      if (quality === 'add9' && semi === 2) return '9';
+      return INTERVAL_NAMES[semi];
+    }
+    function mod12(n) {
+      return ((n % 12) + 12) % 12;
+    }
+    function anchorFret(rootPc, openStringPc) {
+      let fret = mod12(rootPc - openStringPc);
+      if (fret === 0) fret = 12;
+      if (fret > 10) fret -= 12;
+      if (fret <= 0) fret += 12;
+      return fret;
+    }
+    function getChordViewport(frets) {
+      const played = frets.filter(f => f > 0);
+      const hasOpen = frets.some(f => f === 0);
+      if (played.length === 0) {
+        return { start: 0, end: 4 };
+      }
+      const minFret = Math.min(...played);
+      const maxFret = Math.max(...played);
+      if (hasOpen || minFret <= 2) {
+        return { start: 0, end: Math.min(MAX_FRET, Math.max(4, maxFret + 1)) };
+      }
+      let start = Math.max(1, minFret - 1);
+      let end = Math.min(MAX_FRET, maxFret + 1);
+      while (end - start + 1 < 5 && end < MAX_FRET) end++;
+      while (end - start + 1 < 5 && start > 1) start--;
+      return { start, end };
+    }
+    function getNeckViewport() {
+      if (state.mode === 'scales' || state.fullNeck) {
+        return { firstFret: 1, lastFret: MAX_FRET, showNut: true };
+      }
+      const vm = getChordViewModel();
+      if (!vm.selected) {
+        return { firstFret: 1, lastFret: 5, showNut: true };
+      }
+      const vp = getChordViewport(vm.selected.frets);
+      return {
+        firstFret: Math.max(1, vp.start),
+        lastFret: vp.end,
+        showNut: vp.start === 0
+      };
+    }
+    function detectBarres(frets, fingers) {
+      const barres = [];
+      for (let f = 1; f <= 4; f++) {
+        const stringIndices = [];
+        const fretValues = [];
+        for (let s = 0; s < 6; s++) {
+          if (fingers[s] === f && frets[s] > 0) {
+            stringIndices.push(s);
+            fretValues.push(frets[s]);
+          }
+        }
+        if (stringIndices.length >= 2) {
+          const targetFret = Math.min(...fretValues);
+          const matchingStrings = stringIndices.filter(s => frets[s] === targetFret);
+          if (matchingStrings.length >= 2) {
+            const minS = Math.min(...matchingStrings);
+            const maxS = Math.max(...matchingStrings);
+            let valid = true;
+            for (let s = minS; s <= maxS; s++) {
+              if (frets[s] === -1 || (frets[s] >= 0 && frets[s] < targetFret)) {
+                valid = false;
+                break;
+              }
+            }
+            if (valid) {
+              barres.push({ finger: f, fret: targetFret, fromString: minS, toString: maxS });
+            }
+          }
+        }
+      }
+      return barres;
+    }
+
+    function getVoicings(root, quality, voicingFilter = 'top5') {
+      const shapes = [];
+      const r6 = anchorFret(root, TUNING[0]);
+      const r5 = anchorFret(root, TUNING[1]);
+      const r4 = anchorFret(root, TUNING[2]);
+      if (OPEN_CHORDS[root] && OPEN_CHORDS[root][quality]) {
+        const o = OPEN_CHORDS[root][quality];
+        shapes.push({
+          sub: o.sub,
+          type: 'Open',
+          frets: o.frets.slice(),
+          fingers: o.fingers.slice(),
+          tags: o.tags.slice()
+        });
+      }
+      if (quality === 'Maj') {
+        shapes.push(
+          { sub: '6th-String Barre (E-Shape)', type: 'Barre', frets: [r6, r6+2, r6+2, r6+1, r6, r6], fingers: [1, 3, 4, 2, 1, 1], tags: ['Barre', 'Most Common'] },
+          { sub: '5th-String Barre (A-Shape)', type: 'Barre', frets: [-1, r5, r5+2, r5+2, r5+2, r5], fingers: [0, 1, 3, 3, 3, 1], tags: ['Barre', 'Common'] },
+          { sub: '4-String Compact', type: 'Shell', frets: [-1, -1, r4, r4+2, r4+3, r4+2], fingers: [0, 0, 1, 2, 4, 3], tags: ['Compact', 'Bright'] },
+          { sub: 'Top Triad (Strings 1-2-3)', type: 'Triad', frets: [-1, -1, -1, r6+1, r6, r6], fingers: [0, 0, 0, 2, 1, 1], tags: ['Triad', 'Easiest'] },
+          { sub: 'Mid Triad (Strings 2-3-4)', type: 'Triad', frets: [-1, -1, r6+2, r6+1, r6, -1], fingers: [0, 0, 3, 2, 1, 0], tags: ['Triad', 'Mid-Neck'] }
+        );
+      } else if (quality === 'min') {
+        shapes.push(
+          { sub: '6th-String Barre (Em-Shape)', type: 'Barre', frets: [r6, r6+2, r6+2, r6, r6, r6], fingers: [1, 3, 4, 1, 1, 1], tags: ['Barre', 'Most Common'] },
+          { sub: '5th-String Barre (Am-Shape)', type: 'Barre', frets: [-1, r5, r5+2, r5+2, r5+1, r5], fingers: [0, 1, 3, 4, 2, 1], tags: ['Barre', 'Common'] },
+          { sub: '4-String Compact', type: 'Shell', frets: [-1, -1, r4, r4+2, r4+3, r4+1], fingers: [0, 0, 1, 3, 4, 2], tags: ['Compact', 'Bright'] },
+          { sub: 'Top Triad (Strings 1-2-3)', type: 'Triad', frets: [-1, -1, -1, r6, r6, r6], fingers: [0, 0, 0, 1, 1, 1], tags: ['Triad', 'Easiest'] },
+          { sub: 'Mid Triad (Strings 2-3-4)', type: 'Triad', frets: [-1, -1, r6+2, r6, r6, -1], fingers: [0, 0, 3, 1, 1, 0], tags: ['Triad', 'Mid-Neck'] }
+        );
+      } else if (quality === '7') {
+        shapes.push(
+          { sub: '6th-String Barre (E7-Shape)', type: 'Barre', frets: [r6, r6+2, r6, r6+1, r6, r6], fingers: [1, 3, 1, 2, 1, 1], tags: ['Barre', 'Most Common'] },
+          { sub: '5th-String Barre (A7-Shape)', type: 'Barre', frets: [-1, r5, r5+2, r5, r5+2, r5], fingers: [0, 1, 3, 1, 4, 1], tags: ['Barre', 'Common'] },
+          { sub: '3-Note Jazz/Blues Shell', type: 'Shell', frets: [r6, -1, r6, r6+1, -1, -1], fingers: [1, 0, 2, 3, 0, 0], tags: ['Shell', 'Easiest'] },
+          { sub: '4-String Compact (D7-Shape)', type: 'Shell', frets: [-1, -1, r4, r4+2, r4+1, r4+2], fingers: [0, 0, 1, 3, 2, 4], tags: ['Compact', 'Bright'] },
+          { sub: 'Upper 3-String (3-b7-R)', type: 'Triad', frets: [-1, -1, -1, r5, r5+2, r5], fingers: [0, 0, 0, 1, 3, 1], tags: ['Triad', 'Compact'] }
+        );
+      } else if (quality === 'Maj7') {
+        shapes.push(
+          { sub: '6th-String Shell Voicing', type: 'Shell', frets: [r6, -1, r6+1, r6+1, r6, -1], fingers: [1, 0, 3, 4, 2, 0], tags: ['Shell', 'Most Common'] },
+          { sub: '5th-String Barre (Amaj7)', type: 'Barre', frets: [-1, r5, r5+2, r5+1, r5+2, r5], fingers: [0, 1, 3, 2, 4, 1], tags: ['Barre', 'Full'] },
+          { sub: '4-String Compact (Dmaj7)', type: 'Shell', frets: [-1, -1, r4, r4+2, r4+2, r4+2], fingers: [0, 0, 1, 3, 3, 3], tags: ['Compact', 'Easiest'] },
+          { sub: 'Rootless Upper Triad (3-5-7)', type: 'Triad', frets: [-1, -1, r5+2, r5+1, r5+2, -1], fingers: [0, 0, 2, 1, 3, 0], tags: ['Triad', 'Bright'] },
+          { sub: 'Top-3 Maj7 (7-3-5)', type: 'Triad', frets: [-1, -1, -1, r4+2, r4+2, r4+2], fingers: [0, 0, 0, 1, 1, 1], tags: ['Triad', 'Easiest'] }
+        );
+      } else if (quality === 'min7') {
+        shapes.push(
+          { sub: '6th-String Shell Voicing', type: 'Shell', frets: [r6, -1, r6, r6, r6, -1], fingers: [1, 0, 2, 2, 2, 0], tags: ['Shell', 'Most Common'] },
+          { sub: '6th-String Barre (Em7-Shape)', type: 'Barre', frets: [r6, r6+2, r6, r6, r6, r6], fingers: [1, 3, 1, 1, 1, 1], tags: ['Barre', 'Full'] },
+          { sub: '5th-String Barre (Am7-Shape)', type: 'Barre', frets: [-1, r5, r5+2, r5, r5+1, r5], fingers: [0, 1, 3, 1, 2, 1], tags: ['Barre', 'Common'] },
+          { sub: '4-String Compact (Dm7-Shape)', type: 'Shell', frets: [-1, -1, r4, r4+2, r4+1, r4+1], fingers: [0, 0, 1, 3, 2, 2], tags: ['Compact', 'Easiest'] },
+          { sub: 'Rootless Upper Triad (b3-5-b7)', type: 'Triad', frets: [-1, -1, -1, r6, r6, r6+3], fingers: [0, 0, 0, 1, 1, 4], tags: ['Triad', 'Bright'] }
+        );
+      } else if (quality === 'add9') {
+        shapes.push(
+          { sub: '4-String Movable Add9', type: 'Shell', frets: [-1, -1, r4, r4+1, r4, r4+2], fingers: [0, 0, 1, 2, 1, 4], tags: ['Compact', 'Most Common'] },
+          { sub: '6th-String Barre Add9', type: 'Barre', frets: [r6, -1, r6+2, r6+1, r6, r6+2], fingers: [1, 0, 3, 2, 1, 4], tags: ['Barre', 'Lush'] },
+          { sub: '5th-String Movable Add9', type: 'Barre', frets: [-1, r5, r5+2, r5+4, r5+2, r5], fingers: [0, 1, 2, 4, 3, 1], tags: ['Barre', 'Stretch'] },
+          { sub: 'Upper 3-String Add9 (3-5-9)', type: 'Triad', frets: [-1, -1, -1, r4+1, r4, r4+2], fingers: [0, 0, 0, 2, 1, 4], tags: ['Triad', 'Bright'] }
+        );
+      } else if (quality === 'sus4') {
+        shapes.push(
+          { sub: '6th-String Barre Sus4', type: 'Barre', frets: [r6, r6+2, r6+2, r6+2, r6, r6], fingers: [1, 2, 3, 4, 1, 1], tags: ['Barre', 'Most Common'] },
+          { sub: '5th-String Barre Sus4', type: 'Barre', frets: [-1, r5, r5+2, r5+2, r5+3, r5], fingers: [0, 1, 2, 3, 4, 1], tags: ['Barre', 'Common'] },
+          { sub: '4-String Compact Sus4', type: 'Shell', frets: [-1, -1, r4, r4+2, r4+3, r4+3], fingers: [0, 0, 1, 2, 3, 4], tags: ['Compact', 'Bright'] },
+          { sub: '3-String Sus4 Triad (R-4-5)', type: 'Triad', frets: [-1, -1, r6+2, r6+2, r6, -1], fingers: [0, 0, 2, 3, 1, 0], tags: ['Triad', 'Easiest'] }
+        );
+      } else if (quality === '5') {
+        shapes.push(
+          { sub: '6th-String 3-Note Power', type: 'Barre', frets: [r6, r6+2, r6+2, -1, -1, -1], fingers: [1, 3, 4, 0, 0, 0], tags: ['Most Common', 'Full'] },
+          { sub: '5th-String 3-Note Power', type: 'Barre', frets: [-1, r5, r5+2, r5+2, -1, -1], fingers: [0, 1, 3, 4, 0, 0], tags: ['Common', 'Punchy'] },
+          { sub: '6th-String 2-Note Tight', type: 'Shell', frets: [r6, r6+2, -1, -1, -1, -1], fingers: [1, 3, 0, 0, 0, 0], tags: ['Easiest', 'Compact'] },
+          { sub: '4th-String Power', type: 'Shell', frets: [-1, -1, r4, r4+2, r4+3, -1], fingers: [0, 0, 1, 2, 4, 0], tags: ['Bright', 'Mid-Neck'] }
+        );
+      }
+      let filtered = shapes;
+      if (voicingFilter !== 'top5') {
+        filtered = shapes.filter(s => s.type === voicingFilter);
+        if (filtered.length === 0) filtered = shapes;
+      }
+      return filtered.map(s => ({
+        ...s,
+        barres: detectBarres(s.frets, s.fingers)
+      }));
+    }
+    function getAllVoicings() {
+      return getVoicings(state.root, state.quality, state.voicingFilter);
+    }
+    function getVisibleVoicings() {
+      const all = getAllVoicings();
+      return state.showAllChords ? all : all.slice(0, 5);
+    }
+    function clampSelectedCardIdx() {
+      const visible = getVisibleVoicings();
+      if (visible.length === 0) {
+        state.selectedCardIdx = 0;
+        return;
+      }
+      state.selectedCardIdx = Math.max(0, Math.min(state.selectedCardIdx, visible.length - 1));
+    }
+    function getChordViewModel() {
+      const all = getAllVoicings();
+      const visible = state.showAllChords ? all : all.slice(0, 5);
+      const selectedIdx = visible.length
+        ? Math.max(0, Math.min(state.selectedCardIdx, visible.length - 1))
+        : 0;
+      return {
+        all,
+        visible,
+        selectedIdx,
+        selected: visible[selectedIdx] || null
+      };
+    }
+    function roundRectPath(ctx, x, y, w, h, r) {
+      const rr = Math.min(r, w / 2, h / 2);
+      ctx.beginPath();
+      ctx.moveTo(x + rr, y);
+      ctx.lineTo(x + w - rr, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + rr);
+      ctx.lineTo(x + w, y + h - rr);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - rr, y + h);
+      ctx.lineTo(x + rr, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - rr);
+      ctx.lineTo(x, y + rr);
+      ctx.quadraticCurveTo(x, y, x + rr, y);
+      ctx.closePath();
+    }
+function drawHorizontalNeck() {
+      const canvas = document.getElementById('neckCanvas');
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = Math.max(1, Math.round(rect.width * dpr));
+      canvas.height = Math.max(1, Math.round(rect.height * dpr));
+      const ctx = canvas.getContext('2d');
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const W = rect.width;
+      const H = rect.height;
+      ctx.clearRect(0, 0, W, H);
+
+      const vp = getNeckViewport();
+      const firstFret = vp.firstFret;
+      const lastFret = vp.lastFret;
+      const showNut = vp.showNut;
+      const leftGutter = 38;
+      const rightPad = 10;
+      const topPad = 16;
+      const bottomPad = 24;
+      const neckW = W - leftGutter - rightPad;
+      const neckH = H - topPad - bottomPad;
+      const fretCount = Math.max(1, lastFret - firstFret + 1);
+      const fretW = neckW / fretCount;
+      const stringGap = neckH / 5;
+      const yForStringIdx = (sIdx) => topPad + (5 - sIdx) * stringGap;
+      // Center of a fret slot.
+      const xForFret = (fret) => leftGutter + (fret - firstFret + 0.5) * fretW;
+      // Position of the fret wire that sits AFTER the given fret number.
+      const xForFretLine = (fret) => leftGutter + (fret - firstFret + 1) * fretW;
+      let boxStart = 0;
+      let boxEnd = MAX_FRET;
+      if (state.mode === 'scales' && state.position !== 'full') {
+        const posIdx = parseInt(state.position, 10) - 1;
+        const offsets = [0, 2, 5, 7, 9];
+        const openAnchor = mod12(state.root - 4);
+        const rawStart = openAnchor + offsets[posIdx];
+        boxStart = rawStart <= MAX_FRET ? rawStart : rawStart - 12;
+        if (boxStart < 0) boxStart = 0;
+        if (boxStart + 4 > MAX_FRET) boxStart = MAX_FRET - 4;
+        boxEnd = boxStart + 4;
+        const bx1 = xForFretLine(Math.max(0, boxStart) - 1);
+        const bx2 = xForFretLine(boxEnd);
+        ctx.fillStyle = 'rgba(59, 130, 246, 0.12)';
+        ctx.strokeStyle = 'rgba(59, 130, 246, 0.55)';
+        ctx.lineWidth = 1.5;
+        roundRectPath(ctx, bx1, topPad - 8, bx2 - bx1, neckH + 16, 6);
+        ctx.fill();
+        ctx.stroke();
+      }
+      // Fret wires. Index 0 is the wire before firstFret (the nut when firstFret === 1).
+      for (let i = 0; i <= fretCount; i++) {
+        const x = leftGutter + i * fretW;
+        const isNut = (i === 0 && firstFret === 1 && showNut);
+        ctx.beginPath();
+        ctx.moveTo(x, topPad);
+        ctx.lineTo(x, topPad + neckH);
+        ctx.strokeStyle = isNut ? '#e2e8f0' : '#334155';
+        ctx.lineWidth = isNut ? 3.5 : 1.2;
+        ctx.stroke();
+      }
+      // Fret numbers.
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '600 10px -apple-system, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'alphabetic';
+      for (let f = firstFret; f <= lastFret; f++) {
+        ctx.fillText(String(f), xForFret(f), H - 6);
+      }
+      // Inlay markers.
+      ctx.fillStyle = '#334155';
+      [3, 5, 7, 9, 15].forEach(f => {
+        if (f < firstFret || f > lastFret) return;
+        ctx.beginPath();
+        ctx.arc(xForFret(f), topPad + neckH / 2, 3.2, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      if (firstFret <= 12 && lastFret >= 12) {
+        [1.5, 3.5].forEach(row => {
+          ctx.beginPath();
+          ctx.arc(xForFret(12), topPad + row * stringGap, 3.2, 0, Math.PI * 2);
+          ctx.fill();
+        });
+      }
+      // Strings + string names.
+      for (let sIdx = 0; sIdx < 6; sIdx++) {
+        const y = yForStringIdx(sIdx);
+        ctx.beginPath();
+        ctx.moveTo(leftGutter, y);
+        ctx.lineTo(leftGutter + neckW, y);
+        ctx.strokeStyle = '#64748b';
+        ctx.lineWidth = 1 + (5 - sIdx) * 0.28;
+        ctx.stroke();
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '700 11px -apple-system, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(STRING_NAMES[sIdx], 4, y);
+      }
+      if (state.mode === 'chords') {
+        const vm = getChordViewModel();
+        const active = vm.selected;
+        if (!active) return;
+        active.barres.forEach(b => {
+          if (b.fret < firstFret || b.fret > lastFret) return;
+          const x = xForFret(b.fret);
+          const y1 = yForStringIdx(b.fromString);
+          const y2 = yForStringIdx(b.toString);
+          ctx.beginPath();
+          ctx.moveTo(x, y1);
+          ctx.lineTo(x, y2);
+          ctx.strokeStyle = 'rgba(59, 130, 246, 0.78)';
+          ctx.lineWidth = 10;
+          ctx.lineCap = 'round';
+          ctx.stroke();
+        });
+        for (let sIdx = 0; sIdx < 6; sIdx++) {
+          const fret = active.frets[sIdx];
+          const y = yForStringIdx(sIdx);
+          if (fret === -1) {
+            ctx.fillStyle = '#ef4444';
+            ctx.font = '700 12px -apple-system, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('X', leftGutter - 11, y);
+            continue;
+          }
+          if (fret === 0 && !showNut) continue;
+          if (fret > 0 && (fret < firstFret || fret > lastFret)) continue;
+          const x = fret === 0 ? leftGutter - 11 : xForFret(fret);
+          const pitch = mod12(TUNING[sIdx] + fret);
+          const isRoot = pitch === state.root;
+          ctx.beginPath();
+          ctx.arc(x, y, 8.5, 0, Math.PI * 2);
+          ctx.fillStyle = isRoot ? '#f97316' : '#3b82f6';
+          ctx.fill();
+          ctx.lineWidth = 1.5;
+          ctx.strokeStyle = '#fff';
+          ctx.stroke();
+          let txt = '';
+          if (state.labelMode === 'fingers') {
+            txt = fret === 0 ? '0' : String(active.fingers[sIdx] || '');
+          } else if (state.labelMode === 'intervals') {
+            txt = intervalLabel(state.root, pitch, state.quality);
+          } else {
+            txt = noteName(pitch);
+          }
+          ctx.fillStyle = '#fff';
+          ctx.font = '700 9.5px -apple-system, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(txt, x, y + 0.5);
+        }
+      } else {
+        const scaleObj = SCALES.find(s => s.id === state.scale) || SCALES[0];
+        const anchor = mod12(state.root - 4);
+        const loopStart = showNut ? 0 : firstFret;
+        for (let sIdx = 0; sIdx < 6; sIdx++) {
+          const y = yForStringIdx(sIdx);
+          for (let f = loopStart; f <= lastFret; f++) {
+            const pitch = mod12(TUNING[sIdx] + f);
+            const relSemi = mod12(pitch - state.root);
+            if (!scaleObj.semitones.includes(relSemi)) continue;
+            if (state.rootsOnly && relSemi !== 0) continue;
+            const inBox = state.position === 'full' || (f >= boxStart && f <= boxEnd);
+            const isRoot = relSemi === 0;
+            const isBlue = scaleObj.blueNote === relSemi;
+            let isChordTone = false;
+            if (state.chordTones) {
+              if (state.activeHighlightChordTones) {
+                isChordTone = state.activeHighlightChordTones.includes(pitch);
+              } else {
+                isChordTone = scaleObj.chordTones.includes(relSemi);
+              }
+            }
+            const x = f === 0 ? leftGutter - 11 : xForFret(f);
+            ctx.save();
+            ctx.globalAlpha = inBox ? 1.0 : 0.3;
+            ctx.beginPath();
+            ctx.arc(x, y, 8.2, 0, Math.PI * 2);
+            if (isRoot) {
+              ctx.fillStyle = '#f97316';
+            } else if (isBlue) {
+              ctx.fillStyle = '#06b6d4';
+            } else if (isChordTone) {
+              ctx.fillStyle = '#10b981';
+            } else {
+              ctx.fillStyle = '#334155';
+            }
+            ctx.fill();
+            ctx.lineWidth = isChordTone || isRoot ? 1.8 : 1;
+            ctx.strokeStyle = isChordTone ? '#a7f3d0' : '#cbd5e1';
+            ctx.stroke();
+            let txt = '';
+            if (state.labelMode === 'fingers') {
+              if (f === 0) {
+                txt = '0';
+              } else if (state.position !== 'full') {
+                const offset = f - boxStart;
+                if (offset <= 0) txt = '1';
+                else if (offset === 1) txt = '2';
+                else if (offset === 2) txt = '3';
+                else txt = '4';
+              } else {
+                const startRef = anchor === 0 ? 1 : anchor;
+                const m = ((f - startRef) % 4 + 4) % 4;
+                txt = String(m + 1);
+              }
+            } else if (state.labelMode === 'intervals') {
+              txt = INTERVAL_NAMES[relSemi];
+            } else {
+              txt = noteName(pitch);
+            }
+            ctx.fillStyle = '#fff';
+            ctx.font = '700 9px -apple-system, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(txt, x, y + 0.5);
+            ctx.restore();
+          }
+        }
+      }
+    }
+    function drawVerticalChordCard(canvas, shape) {
+      const dpr = window.devicePixelRatio || 1;
+      const vp = getChordViewport(shape.frets);
+      const showNut = vp.start === 0;
+      const baseFret = showNut ? 1 : vp.start;
+      const fretRows = Math.max(4, vp.end - baseFret + 1);
+      const W = 130;
+      const H = fretRows > 4 ? 148 : 132;
+      canvas.width = W * dpr;
+      canvas.height = H * dpr;
+      canvas.style.width = W + 'px';
+      canvas.style.height = H + 'px';
+      const ctx = canvas.getContext('2d');
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, W, H);
+      const leftPad = 28;
+      const rightPad = 14;
+      const topPad = 22;
+      const bottomPad = 10;
+      const gridW = W - leftPad - rightPad;
+      const gridH = H - topPad - bottomPad;
+      const stringStep = gridW / 5;
+      const fretStep = gridH / fretRows;
+      const xForString = (sIdx) => leftPad + sIdx * stringStep;
+      const yForFretSlot = (fretNum) => topPad + (fretNum - baseFret + 0.5) * fretStep;
+      for (let r = 0; r <= fretRows; r++) {
+        const y = topPad + r * fretStep;
+        const isNut = (r === 0 && showNut);
+        ctx.beginPath();
+        ctx.moveTo(leftPad, y);
+        ctx.lineTo(leftPad + gridW, y);
+        ctx.strokeStyle = isNut ? '#f8fafc' : '#475569';
+        ctx.lineWidth = isNut ? 3.5 : 1.2;
+        ctx.stroke();
+      }
+      for (let s = 0; s < 6; s++) {
+        const x = xForString(s);
+        ctx.beginPath();
+        ctx.moveTo(x, topPad);
+        ctx.lineTo(x, topPad + gridH);
+        ctx.strokeStyle = '#64748b';
+        ctx.lineWidth = 1.1;
+        ctx.stroke();
+      }
+      if (!showNut) {
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = '700 12px -apple-system, sans-serif';
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(String(baseFret), leftPad - 8, topPad + fretStep * 0.5);
+      }
+      shape.barres.forEach(b => {
+        if (b.fret < baseFret || b.fret > baseFret + fretRows - 1) return;
+        const y = yForFretSlot(b.fret);
+        const x1 = xForString(b.fromString);
+        const x2 = xForString(b.toString);
+        ctx.beginPath();
+        ctx.moveTo(x1, y);
+        ctx.lineTo(x2, y);
+        ctx.strokeStyle = 'rgba(59, 130, 246, 0.82)';
+        ctx.lineWidth = 9;
+        ctx.lineCap = 'round';
+        ctx.stroke();
+      });
+      for (let s = 0; s < 6; s++) {
+        const f = shape.frets[s];
+        const x = xForString(s);
+        if (f === -1) {
+          ctx.fillStyle = '#ef4444';
+          ctx.font = '700 11px -apple-system, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('X', x, topPad - 10);
+        } else if (f === 0) {
+          ctx.fillStyle = '#e2e8f0';
+          ctx.font = '700 11px -apple-system, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('0', x, topPad - 10);
+        } else {
+          const y = yForFretSlot(f);
+          const pitch = mod12(TUNING[s] + f);
+          const isRoot = pitch === state.root;
+          ctx.beginPath();
+          ctx.arc(x, y, 7.8, 0, Math.PI * 2);
+          ctx.fillStyle = isRoot ? '#f97316' : '#3b82f6';
+          ctx.fill();
+          ctx.lineWidth = 1.3;
+          ctx.strokeStyle = '#fff';
+          ctx.stroke();
+          let txt = '';
+          if (state.labelMode === 'fingers') {
+            txt = String(shape.fingers[s] || '');
+          } else if (state.labelMode === 'intervals') {
+            txt = intervalLabel(state.root, pitch, state.quality);
+          } else {
+            txt = noteName(pitch);
+          }
+          ctx.fillStyle = '#fff';
+          ctx.font = '700 9px -apple-system, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(txt, x, y + 0.5);
+        }
+      }
+    }
+function renderChordCards() {
+      const grid = document.getElementById('chordGrid');
+      const cardsCount = document.getElementById('cardsCount');
+      const showAllBtn = document.getElementById('showAllBtn');
+
+      grid.innerHTML = '';
+      const viewModel = getChordViewModel();
+      state.selectedCardIdx = viewModel.selectedIdx;
+      cardsCount.textContent =
+        `Showing ${viewModel.visible.length} of ${viewModel.all.length} shapes (tap card to view on neck)`;
+      if (viewModel.all.length > 5) {
+        showAllBtn.style.display = 'inline-block';
+        showAllBtn.textContent = state.showAllChords
+          ? 'Show Top 5'
+          : `Show All (${viewModel.all.length})`;
+      } else {
+        showAllBtn.style.display = 'none';
+      }
+      const rootName = noteName(state.root);
+      viewModel.visible.forEach((shape, idx) => {
+        const vp = getChordViewport(shape.frets);
+        const card = document.createElement('div');
+        card.className =
+          'chord-card' + (idx === viewModel.selectedIdx ? ' selected' : '');
+        card.tabIndex = 0;
+        card.setAttribute('role', 'button');
+        card.setAttribute(
+          'aria-label',
+          `${rootName} ${state.quality}, ${shape.sub}, frets ${vp.start} to ${vp.end}`
+        );
+        const select = () => {
+          state.selectedCardIdx = idx;
+          renderAll();
+        };
+        card.onclick = select;
+        card.onkeydown = event => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            select();
+          }
+        };
+        const title = document.createElement('div');
+        title.className = 'card-title';
+        title.textContent = `${rootName} ${state.quality}`;
+        const sub = document.createElement('div');
+        sub.className = 'card-sub';
+        sub.textContent = shape.sub;
+        const cvs = document.createElement('canvas');
+        cvs.className = 'card-canvas';
+        const tags = document.createElement('div');
+        tags.className = 'tag-row';
+        shape.tags.forEach(t => {
+          const span = document.createElement('span');
+          span.className = 'tag';
+          span.textContent = t;
+          tags.appendChild(span);
+        });
+        card.appendChild(title);
+        card.appendChild(sub);
+        card.appendChild(cvs);
+        card.appendChild(tags);
+        grid.appendChild(card);
+        drawVerticalChordCard(cvs, shape);
+      });
+    }
+    function jumpToChord(rootPitch, qualityId) {
+      state.mode = 'chords';
+      state.root = mod12(rootPitch);
+      state.quality = qualityId;
+      resetChordSelection();
+      renderAll();
+    }
+    function resetChordSelection() {
+      state.selectedCardIdx = 0;
+      state.showAllChords = false;
+      state.activeHighlightChordRoot = null;
+      state.activeHighlightChordTones = null;
+    }
+    function renderContextPanel() {
+      const panel = document.getElementById('contextPanel');
+      panel.innerHTML = '';
+      const R = state.root;
+      const n = offset => noteName(R + offset);
+      if (state.mode === 'chords') {
+        const title = document.createElement('div');
+        title.className = 'context-title';
+        title.textContent =
+          `Harmonic Context & Common Moves for ${n(0)} ${state.quality}`;
+        panel.appendChild(title);
+        let moves = [];
+        if (
+          state.quality === 'Maj' ||
+          state.quality === 'add9' ||
+          state.quality === 'sus4'
+        ) {
+          moves = [
+            { r: R + 5, q: 'Maj', label: `${n(5)} Maj (IV)` },
+            { r: R + 7, q: 'Maj', label: `${n(7)} Maj (V)` },
+            { r: R + 9, q: 'min', label: `${n(9)} min (vi)` },
+            { r: R + 2, q: 'min', label: `${n(2)} min (ii)` },
+            { r: R, q: 'add9', label: `${n(0)} add9` }
+          ];
+        } else if (state.quality === 'Maj7') {
+          moves = [
+            { r: R + 5, q: 'Maj7', label: `${n(5)} Maj7 (IV)` },
+            { r: R + 9, q: 'min7', label: `${n(9)} min7 (vi)` },
+            { r: R + 2, q: 'min7', label: `${n(2)} min7 (ii)` },
+            { r: R + 7, q: '7', label: `${n(7)} 7 (V7)` }
+          ];
+        } else if (state.quality === 'min' || state.quality === 'min7') {
+          moves = [
+            { r: R + 5, q: 'min7', label: `${n(5)} min7 (iv)` },
+            { r: R + 7, q: '7', label: `${n(7)} 7 (V7)` },
+            { r: R + 8, q: 'Maj7', label: `${n(8)} Maj7 (bVI)` },
+            { r: R + 10, q: 'Maj', label: `${n(10)} Maj (bVII)` }
+          ];
+        } else if (state.quality === '7') {
+          moves = [
+            { r: R + 5, q: 'Maj', label: `${n(5)} Maj (Resolves I)` },
+            { r: R + 5, q: '7', label: `${n(5)} 7 (Blues IV7)` },
+            { r: R + 7, q: 'min7', label: `${n(7)} min7 (ii)` },
+            { r: R + 2, q: '7', label: `${n(2)} 7 (V of V)` }
+          ];
+        } else {
+          moves = [
+            { r: R + 5, q: '5', label: `${n(5)}5 (IV5)` },
+            { r: R + 7, q: '5', label: `${n(7)}5 (V5)` },
+            { r: R + 10, q: '5', label: `${n(10)}5 (bVII5)` },
+            { r: R + 8, q: '5', label: `${n(8)}5 (bVI5)` }
+          ];
+        }
+        const row = document.createElement('div');
+        row.className = 'context-group';
+        const label = document.createElement('span');
+        label.className = 'context-label';
+        label.textContent = 'Tap to jump:';
+        row.appendChild(label);
+        moves.forEach(move => {
+          const button = document.createElement('button');
+          button.className = 'chord-pill';
+          button.textContent = move.label;
+          button.onclick = () => jumpToChord(move.r, move.q);
+          row.appendChild(button);
+        });
+        panel.appendChild(row);
+        return;
+      }
+      const scale = SCALES.find(item => item.id === state.scale) || SCALES[0];
+      const title = document.createElement('div');
+      title.className = 'context-title';
+      title.textContent = `Related Chords in ${n(0)} ${scale.label}`;
+      panel.appendChild(title);
+      const help = document.createElement('div');
+      help.className = 'context-label';
+      help.textContent =
+        'Tap once to highlight chord tones; tap again to open the chord.';
+      panel.appendChild(help);
+      const isMinorish =
+        state.scale === 'Blues' ||
+        state.scale === 'MinorPent' ||
+        state.scale === 'Minor';
+      const diatonic = isMinorish
+        ? [
+            { deg: 'i', r: R, q: 'min7', tones: [0, 3, 7, 10] },
+            { deg: 'bIII', r: R + 3, q: 'Maj7', tones: [3, 7, 10, 2] },
+            { deg: 'iv', r: R + 5, q: 'min7', tones: [5, 8, 0, 3] },
+            { deg: 'v', r: R + 7, q: 'min7', tones: [7, 10, 2, 5] },
+            { deg: 'bVI', r: R + 8, q: 'Maj7', tones: [8, 0, 3, 7] },
+            { deg: 'bVII', r: R + 10, q: '7', tones: [10, 2, 5, 8] }
+          ]
+        : [
+            { deg: 'I', r: R, q: 'Maj7', tones: [0, 4, 7, 11] },
+            { deg: 'ii', r: R + 2, q: 'min7', tones: [2, 5, 9, 0] },
+            { deg: 'iii', r: R + 4, q: 'min7', tones: [4, 7, 11, 2] },
+            { deg: 'IV', r: R + 5, q: 'Maj7', tones: [5, 9, 0, 4] },
+            { deg: 'V', r: R + 7, q: '7', tones: [7, 11, 2, 5] },
+            { deg: 'vi', r: R + 9, q: 'min7', tones: [9, 0, 4, 7] }
+          ];
+      const row = document.createElement('div');
+      row.className = 'context-group';
+      diatonic.forEach(chord => {
+        const chordRoot = mod12(chord.r);
+        const button = document.createElement('button');
+        button.className =
+          'chord-pill' +
+          (state.activeHighlightChordRoot === chordRoot ? ' active-pill' : '');
+        button.textContent =
+          `${chord.deg}: ${noteName(chordRoot)}${chord.q === 'Maj' ? '' : chord.q}`;
+        button.onclick = () => {
+          if (state.activeHighlightChordRoot === chordRoot) {
+            jumpToChord(chordRoot, chord.q);
+            return;
+          }
+          state.activeHighlightChordRoot = chordRoot;
+          state.activeHighlightChordTones =
+            chord.tones.map(offset => mod12(R + offset));
+          state.chordTones = true;
+          document.getElementById('btnChordTones').classList.add('active');
+          renderContextPanel();
+          drawHorizontalNeck();
+        };
+        row.appendChild(button);
+      });
+      panel.appendChild(row);
+    }
+    function populateDropdowns() {
+      const rootSelect = document.getElementById('rootSelect');
+      rootSelect.innerHTML = '';
+      ROOTS.forEach(root => {
+        const option = document.createElement('option');
+        option.value = root.id;
+        option.textContent = root.label;
+        option.selected = root.id === state.root;
+        rootSelect.appendChild(option);
+      });
+      const secondSelect = document.getElementById('secondSelect');
+      const thirdSelect = document.getElementById('thirdSelect');
+      secondSelect.innerHTML = '';
+      thirdSelect.innerHTML = '';
+      if (state.mode === 'chords') {
+        document.getElementById('secondLabel').textContent = 'Quality';
+        document.getElementById('thirdLabel').textContent = 'Voicing';
+        QUALITIES.forEach(quality => {
+          const option = document.createElement('option');
+          option.value = quality.id;
+          option.textContent = quality.label;
+          option.selected = quality.id === state.quality;
+          secondSelect.appendChild(option);
+        });
+        VOICING_FILTERS.forEach(filter => {
+          const option = document.createElement('option');
+          option.value = filter.id;
+          option.textContent = filter.label;
+          option.selected = filter.id === state.voicingFilter;
+          thirdSelect.appendChild(option);
+        });
+      } else {
+        document.getElementById('secondLabel').textContent = 'Scale Type';
+        document.getElementById('thirdLabel').textContent = 'Position Window';
+        SCALES.forEach(scale => {
+          const option = document.createElement('option');
+          option.value = scale.id;
+          option.textContent = scale.label;
+          option.selected = scale.id === state.scale;
+          secondSelect.appendChild(option);
+        });
+        SCALE_POSITIONS.forEach(position => {
+          const option = document.createElement('option');
+          option.value = position.id;
+          option.textContent = position.label;
+          option.selected = position.id === state.position;
+          thirdSelect.appendChild(option);
+        });
+      }
+    }
+    function syncControls() {
+      document
+        .getElementById('tabChords')
+        .classList.toggle('active', state.mode === 'chords');
+      document
+        .getElementById('tabScales')
+        .classList.toggle('active', state.mode === 'scales');
+      document.getElementById('chordsSection').style.display =
+        state.mode === 'chords' ? 'block' : 'none';
+      document.getElementById('scaleToggles').style.display =
+        state.mode === 'scales' ? 'flex' : 'none';
+      document.getElementById('chordToggles').style.display =
+        state.mode === 'chords' ? 'flex' : 'none';
+      const fingersBtn = document.getElementById('lblFingers');
+      fingersBtn.textContent = state.mode === 'scales' ? 'Pattern' : 'Fingers';
+      document
+        .getElementById('lblFingers')
+        .classList.toggle('active', state.labelMode === 'fingers');
+      document
+        .getElementById('lblIntervals')
+        .classList.toggle('active', state.labelMode === 'intervals');
+      document
+        .getElementById('lblNotes')
+        .classList.toggle('active', state.labelMode === 'notes');
+      document
+        .getElementById('btnRootsOnly')
+        .classList.toggle('active', state.rootsOnly);
+      document
+        .getElementById('btnChordTones')
+        .classList.toggle('active', state.chordTones);
+      document
+        .getElementById('btnFullNeck')
+        .classList.toggle('active', state.fullNeck);
+      refreshSpellBtn();
+      populateDropdowns();
+    }
+    function renderAll() {
+      const rootName = noteName(state.root);
+      const subtitle = document.getElementById('neckSubtitle');
+      if (state.mode === 'chords') {
+        const viewModel = getChordViewModel();
+        state.selectedCardIdx = viewModel.selectedIdx;
+        const active = viewModel.selected;
+        document.getElementById('neckTitle').textContent =
+          `${rootName} ${state.quality}` + (active ? ` (${active.sub})` : '');
+        if (active) {
+          const vp = getChordViewport(active.frets);
+          const range = vp.start === 0
+            ? `Open – fret ${vp.end}`
+            : `Frets ${vp.start}–${vp.end}`;
+          subtitle.textContent = state.fullNeck
+            ? 'Full neck • Tap a shape below'
+            : `${range} • Tap a shape below`;
+        } else {
+          subtitle.textContent = 'No shapes available';
+        }
+        renderChordCards();
+      } else {
+        const scale = SCALES.find(item => item.id === state.scale) || SCALES[0];
+        const position =
+          SCALE_POSITIONS.find(item => item.id === state.position) ||
+          SCALE_POSITIONS[0];
+        document.getElementById('neckTitle').textContent =
+          `${rootName} ${scale.label} (${position.label})`;
+        subtitle.textContent = 'Top: high e (1st) • Bottom: low E (6th)';
+      }
+      syncControls();
+      drawHorizontalNeck();
+      renderContextPanel();
+    }
+    function setMode(mode) {
+      state.mode = mode;
+      resetChordSelection();
+      renderAll();
+    }
+    function onRootChange() {
+      state.root = parseInt(document.getElementById('rootSelect').value, 10);
+      resetChordSelection();
+      renderAll();
+    }
+    function onSecondChange() {
+      const value = document.getElementById('secondSelect').value;
+      if (state.mode === 'chords') {
+        state.quality = value;
+        state.selectedCardIdx = 0;
+        state.showAllChords = false;
+      } else {
+        state.scale = value;
+        state.activeHighlightChordRoot = null;
+        state.activeHighlightChordTones = null;
+      }
+      renderAll();
+    }
+    function onThirdChange() {
+      const value = document.getElementById('thirdSelect').value;
+      if (state.mode === 'chords') {
+        state.voicingFilter = value;
+        state.selectedCardIdx = 0;
+        state.showAllChords = false;
+      } else {
+        state.position = value;
+      }
+      renderAll();
+    }
+    function setLabelMode(mode) {
+      state.labelMode = mode;
+      renderAll();
+    }
+    function toggleSpelling() {
+      const order = ['auto', 'sharp', 'flat'];
+      const currentIndex = order.indexOf(state.spellingMode);
+      state.spellingMode = order[(currentIndex + 1) % order.length];
+      renderAll();
+    }
+    function toggleRootsOnly() {
+      state.rootsOnly = !state.rootsOnly;
+      document
+        .getElementById('btnRootsOnly')
+        .classList.toggle('active', state.rootsOnly);
+      drawHorizontalNeck();
+    }
+    function toggleChordTones() {
+      state.chordTones = !state.chordTones;
+      if (!state.chordTones) {
+        state.activeHighlightChordRoot = null;
+        state.activeHighlightChordTones = null;
+      }
+      document
+        .getElementById('btnChordTones')
+        .classList.toggle('active', state.chordTones);
+      renderContextPanel();
+      drawHorizontalNeck();
+    }
+    function toggleFullNeck() {
+      state.fullNeck = !state.fullNeck;
+      renderAll();
+    }
+    function toggleShowAll() {
+      state.showAllChords = !state.showAllChords;
+      clampSelectedCardIdx();
+      renderAll();
+    }
+    let resizeFrame;
+    window.addEventListener('resize', () => {
+      cancelAnimationFrame(resizeFrame);
+      resizeFrame = requestAnimationFrame(renderAll);
+    });
+    renderAll();
+  </script>
+</body>
+</html>
